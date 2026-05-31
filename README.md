@@ -13,6 +13,13 @@ A web-based **Network Asset Discovery and Nmap Scan Management System** built wi
 - **Input Validation** — Strict sanitization to prevent command injection
 - **Responsive Design** — Premium dark theme with Bootstrap 5
 
+## 📸 Screenshots
+
+*(Add your screenshots here before submission!)*
+- `![Dashboard](docs/dashboard.png)`
+- `![New Scan](docs/new_scan.png)`
+- `![Scan Results](docs/scan_results.png)`
+
 ## 🛠️ Technology Stack
 
 | Component | Technology |
@@ -72,6 +79,21 @@ python app.py
 ```
 
 Visit **http://localhost:5000** in your browser.
+
+## 📖 Usage Guide
+
+1. **Dashboard Overview**: When you open the application, you'll see the main dashboard with high-level statistics (Total Scans, Hosts Discovered, Open Ports) and a table of your recent scans.
+2. **Running a Scan**: 
+   - Navigate to **New Scan** via the top navbar.
+   - Enter your target IP or hostname (e.g., `127.0.0.1` or `scanme.nmap.org`).
+   - Select one or more scan types by clicking the cards (e.g., *Fast Scan* or *OS Detection*).
+   - Click **Execute Scan**. 
+   - *Note: Multiple selections will run in the background concurrently.*
+3. **Viewing Results**: 
+   - Once a scan completes, click on it in the dashboard or history page.
+   - You will see a detailed view of all hosts discovered during that scan.
+   - Click **Details** on any specific host to view its operating system, MAC address, and a full breakdown of all open ports and services detected.
+4. **Scan History**: Use the **History** tab to filter past scans by Target IP, Scan Type, or Status.
 
 ## 📁 Project Structure
 
