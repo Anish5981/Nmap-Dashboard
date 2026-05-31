@@ -16,9 +16,12 @@ A web-based **Network Asset Discovery and Nmap Scan Management System** built wi
 ## 📸 Screenshots
 
 *(Add your screenshots here before submission!)*
-- `![Dashboard](docs/dashboard.png)`
-- `![New Scan](docs/new_scan.png)`
-- `![Scan Results](docs/scan_results.png)`
+- <img width="1911" height="1095" alt="Screenshot 2026-05-31 133849" src="https://github.com/user-attachments/assets/77b517d8-bd0e-4068-b6c7-d0b32329ac2d" />
+
+- <img width="1917" height="1028" alt="image" src="https://github.com/user-attachments/assets/725faef8-6a45-4f59-9f4d-e030ffb2a860" />
+
+- <img width="1919" height="1028" alt="image" src="https://github.com/user-attachments/assets/286ac45b-8d96-43dd-a512-e15023b4e251" />
+
 
 ## 🛠️ Technology Stack
 
