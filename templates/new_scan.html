@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}New Scan — Nmap Dashboard{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="h3 mb-1">New Scan</h1>
+        <p class="text-muted mb-0" style="font-size: 0.85rem;">Configure and execute an Nmap scan</p>
+    </div>
+
+    <!-- Warning Banner -->
+    <div class="warning-banner">
+        <span>⚠️</span>
+        <span>Only scan networks you own or have explicit permission to scan. Do not scan public internet targets.</span>
+    </div>
+
+    <form id="scan-form" method="POST" action="{{ url_for('scan.execute') }}">
+        <!-- Target Input -->
+        <div class="mb-4">
+            <label for="target-input" class="form-label">Target</label>
+            <input type="text"
+                   id="target-input"
+                   name="target"
+                   class="form-control"
+                   placeholder="e.g., 192.168.1.1, 192.168.1.0/24, localhost"
+                   required
+                   autocomplete="off">
+            <div class="form-text text-muted mt-1" style="font-size: 0.78rem;">
+                Enter an IP address, IP range (CIDR), or hostname
+            </div>
+        </div>
+
+        <!-- Scan Type Selection -->
+        <div class="mb-4">
+            <label class="form-label">Scan Type <span class="text-muted">(You can select multiple)</span></label>
+            <input type="hidden" id="scan_type_input" name="scan_type" value="">
+
+            <div class="row g-3">
+                {% for key, scan in scan_types.items() %}
+                <div class="col-md-4 col-sm-6">
+                    <div class="scan-type-option" data-scan-type="{{ key }}">
+                        <div class="scan-type-name">{{ scan.name }}</div>
+                        <div class="scan-type-desc">{{ scan.description }}</div>
+                        <div class="font-mono mt-1" style="font-size: 0.72rem; color: var(--accent-cyan);">
+                            nmap {{ scan.flags | join(' ') }} &lt;target&gt;
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-primary-custom">
+                🚀 Execute Scan
+            </button>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary-custom">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

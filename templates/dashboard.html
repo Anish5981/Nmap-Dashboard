@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Nmap Scanner{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">Dashboard</h1>
+            <p class="text-muted mb-0" style="font-size: 0.85rem;">Network scan overview and recent activity</p>
+        </div>
+        <a href="{{ url_for('scan.new_scan') }}" class="btn btn-primary-custom">
+            🔍 New Scan
+        </a>
+    </div>
+
+    <!-- Summary Stat Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card card-scans">
+                <div class="stat-icon">📡</div>
+                <div class="stat-label">Total Scans</div>
+                <div class="stat-value">{{ total_scans }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card card-hosts">
+                <div class="stat-icon">🖥️</div>
+                <div class="stat-label">Hosts Discovered</div>
+                <div class="stat-value">{{ total_hosts }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card card-ports">
+                <div class="stat-icon">🔓</div>
+                <div class="stat-label">Open Ports</div>
+                <div class="stat-value">{{ total_open_ports }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Scans Table -->
+    <div class="data-table-wrapper">
+        <div class="table-header">
+            <h5>Recent Scans</h5>
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="table-search" class="form-control form-control-sm"
+                       placeholder="Filter scans..." style="width: 220px; padding-left: 2.5rem;">
+            </div>
+        </div>
+
+        {% if recent_scans %}
+        <div class="table-responsive">
+            <table class="table table-clickable filterable-table">
+                <thead>
+                    <tr>
+                        <th>Target</th>
+                        <th>Scan Type</th>
+                        <th>Status</th>
+                        <th>Hosts</th>
+                        <th>Time</th>
+                        <th>Duration</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in recent_scans %}
+                    <tr onclick="window.location='{{ url_for('scan.scan_detail', scan_id=scan.id) }}'">
+                        <td class="font-mono">{{ scan.target }}</td>
+                        <td>{{ scan.scan_type }}</td>
+                        <td>
+                            <span class="badge-status badge-{{ scan.status }}">
+                                {{ scan.status }}
+                            </span>
+                        </td>
+                        <td>{{ scan.hosts | length }}</td>
+                        <td>{{ scan.scan_time.strftime('%b %d, %H:%M') if scan.scan_time else '—' }}</td>
+                        <td>{{ '%.1f s' % scan.duration_seconds if scan.duration_seconds else '—' }}</td>
+                        <td>
+                            <a href="{{ url_for('scan.scan_detail', scan_id=scan.id) }}"
+                               class="btn btn-sm btn-secondary-custom" onclick="event.stopPropagation()">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📡</div>
+            <div class="empty-text">No scans yet</div>
+            <div class="empty-subtext">Run your first scan to see results here</div>
+            <a href="{{ url_for('scan.new_scan') }}" class="btn btn-primary-custom mt-3">Start a Scan</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Scan #{{ scan.id }} — Nmap Dashboard{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Back Link -->
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary-custom btn-sm mb-3">
+        ← Back to Dashboard
+    </a>
+
+    <!-- Scan Detail Header -->
+    <div class="detail-header">
+        <div class="d-flex align-items-start justify-content-between flex-wrap">
+            <div class="detail-title">
+                Scan #{{ scan.id }}
+                <span class="badge-status badge-{{ scan.status }} ms-2">{{ scan.status }}</span>
+            </div>
+        </div>
+
+        <div class="detail-meta mt-3">
+            <div class="meta-item">
+                <span class="meta-label">Target</span>
+                <span class="meta-value font-mono">{{ scan.target }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Scan Type</span>
+                <span class="meta-value">{{ scan.scan_type }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Time</span>
+                <span class="meta-value">{{ scan.scan_time.strftime('%Y-%m-%d %H:%M:%S') if scan.scan_time else '—' }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Duration</span>
+                <span class="meta-value">{{ '%.2f s' % scan.duration_seconds if scan.duration_seconds else '—' }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Hosts Found</span>
+                <span class="meta-value">{{ hosts | length }}</span>
+            </div>
+        </div>
+
+        {% if scan.command_used %}
+        <div class="mt-3">
+            <span class="meta-label">Command Used</span>
+            <div class="command-display mt-1">{{ scan.command_used }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Hosts Table -->
+    <div class="data-table-wrapper">
+        <div class="table-header">
+            <h5>Discovered Hosts</h5>
+        </div>
+
+        {% if hosts %}
+        <div class="table-responsive">
+            <table class="table table-clickable">
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Hostname</th>
+                        <th>Status</th>
+                        <th>OS</th>
+                        <th>Open Ports</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for host in hosts %}
+                    <tr onclick="window.location='{{ url_for('scan.host_detail', host_id=host.id) }}'">
+                        <td class="font-mono">{{ host.ip_address }}</td>
+                        <td>{{ host.hostname or '—' }}</td>
+                        <td>
+                            <span class="badge-status badge-{{ host.host_status }}">
+                                {{ host.host_status }}
+                            </span>
+                        </td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ host.os_details or '—' }}
+                        </td>
+                        <td>{{ host.open_port_count() }}</td>
+                        <td>
+                            <a href="{{ url_for('scan.host_detail', host_id=host.id) }}"
+                               class="btn btn-sm btn-secondary-custom" onclick="event.stopPropagation()">
+                                Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🖥️</div>
+            <div class="empty-text">No hosts discovered</div>
+            <div class="empty-subtext">
+                {% if scan.status == 'failed' %}
+                    The scan failed. Check the error message above.
+                {% elif scan.status == 'timeout' %}
+                    The scan timed out before completing.
+                {% else %}
+                    No hosts responded during the scan.
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

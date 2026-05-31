@@ -1,0 +1,19 @@
+# Nmap Dashboard
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+.env
+*.log
+scans/*.xml
+venv/
+.venv/
+*.pyc
+.idea/
+.vscode/
+reset_mysql_password.bat

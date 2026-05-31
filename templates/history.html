@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Scan History — Nmap Dashboard{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">Scan History</h1>
+            <p class="text-muted mb-0" style="font-size: 0.85rem;">Browse all past scan results</p>
+        </div>
+        <a href="{{ url_for('scan.new_scan') }}" class="btn btn-primary-custom">
+            🔍 New Scan
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="detail-header mb-4" style="padding: 1rem 1.25rem;">
+        <form method="GET" action="{{ url_for('dashboard.history') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Target</label>
+                <input type="text" name="target" class="form-control form-control-sm"
+                       placeholder="Filter by IP or hostname" value="{{ target_filter }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Statuses</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                    <option value="timeout" {% if status_filter == 'timeout' %}selected{% endif %}>Timeout</option>
+                    <option value="running" {% if status_filter == 'running' %}selected{% endif %}>Running</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Scan Type</label>
+                <input type="text" name="type" class="form-control form-control-sm"
+                       placeholder="e.g., Fast Scan" value="{{ type_filter }}">
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary-custom btn-sm flex-grow-1">Filter</button>
+                <a href="{{ url_for('dashboard.history') }}" class="btn btn-secondary-custom btn-sm">Clear</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scans Table -->
+    <div class="data-table-wrapper">
+        <div class="table-header">
+            <h5>All Scans</h5>
+            <span class="text-muted" style="font-size: 0.82rem;">
+                Page {{ pagination.page }} of {{ pagination.pages or 1 }}
+                ({{ pagination.total }} total)
+            </span>
+        </div>
+
+        {% if scans %}
+        <div class="table-responsive">
+            <table class="table table-clickable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Target</th>
+                        <th>Scan Type</th>
+                        <th>Command</th>
+                        <th>Status</th>
+                        <th>Hosts</th>
+                        <th>Duration</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in scans %}
+                    <tr onclick="window.location='{{ url_for('scan.scan_detail', scan_id=scan.id) }}'">
+                        <td class="text-muted">{{ scan.id }}</td>
+                        <td class="font-mono">{{ scan.target }}</td>
+                        <td>{{ scan.scan_type }}</td>
+                        <td class="font-mono" style="font-size: 0.78rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ scan.command_used }}
+                        </td>
+                        <td>
+                            <span class="badge-status badge-{{ scan.status }}">
+                                {{ scan.status }}
+                            </span>
+                        </td>
+                        <td>{{ scan.hosts | length }}</td>
+                        <td>{{ '%.1f s' % scan.duration_seconds if scan.duration_seconds else '—' }}</td>
+                        <td style="white-space: nowrap;">{{ scan.scan_time.strftime('%Y-%m-%d %H:%M') if scan.scan_time else '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="d-flex justify-content-center py-3">
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('dashboard.history', page=pagination.prev_num, target=target_filter, type=type_filter, status=status_filter) }}">
+                            ‹ Prev
+                        </a>
+                    </li>
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('dashboard.history', page=page_num, target=target_filter, type=type_filter, status=status_filter) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('dashboard.history', page=pagination.next_num, target=target_filter, type=type_filter, status=status_filter) }}">
+                            Next ›
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-text">No scans found</div>
+            <div class="empty-subtext">
+                {% if target_filter or type_filter or status_filter %}
+                    Try adjusting your filters
+                {% else %}
+                    Run your first scan to see history here
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
