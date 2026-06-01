@@ -134,6 +134,7 @@ def execute():
                          app.config['NMAP_PATH'], app.config['SCANS_DIR'], app.config['SCAN_TIMEOUT'])
         
         # Check status after sync run to set flash message
+        db.session.commit()  # Reset transaction snapshot to see thread changes
         db.session.refresh(scan_record)
         if scan_record.status == 'completed':
             flash('Scan completed successfully!', 'success')
