@@ -9,9 +9,9 @@ import csv
 from io import StringIO
 from models import db, Scan, Host, Port
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 dashboard_bp = Blueprint('dashboard', __name__)
-
 
 @dashboard_bp.route('/')
 def index():
@@ -70,7 +70,7 @@ def history():
 @dashboard_bp.route('/history/export/csv')
 def export_csv():
     """Export all scan history to CSV."""
-    scans = Scan.query.order_by(Scan.scan_time.desc()).all()
+    scans = Scan.query.options(joinedload(Scan.hosts)).order_by(Scan.scan_time.desc()).all()
     
     def generate():
         data = StringIO()
