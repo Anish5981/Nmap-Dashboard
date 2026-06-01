@@ -46,12 +46,17 @@
 
     <!-- Scans Table -->
     <div class="data-table-wrapper">
-        <div class="table-header">
-            <h5>All Scans</h5>
-            <span class="text-muted" style="font-size: 0.82rem;">
-                Page {{ pagination.page }} of {{ pagination.pages or 1 }}
-                ({{ pagination.total }} total)
-            </span>
+        <div class="table-header d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="mb-0">All Scans</h5>
+                <span class="text-muted" style="font-size: 0.82rem;">
+                    Page {{ pagination.page }} of {{ pagination.pages or 1 }}
+                    ({{ pagination.total }} total)
+                </span>
+            </div>
+            <a href="{{ url_for('dashboard.export_csv') }}" class="btn btn-sm btn-outline-success">
+                📥 Export CSV
+            </a>
         </div>
 
         {% if scans %}

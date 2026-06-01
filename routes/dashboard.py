@@ -4,8 +4,11 @@ Dashboard Routes
 Handles the main dashboard homepage and scan history views.
 """
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, Response, jsonify
+import csv
+from io import StringIO
 from models import db, Scan, Host, Port
+from sqlalchemy import func
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -62,3 +65,66 @@ def history():
         type_filter=type_filter,
         status_filter=status_filter,
     )
+
+
+@dashboard_bp.route('/history/export/csv')
+def export_csv():
+    """Export all scan history to CSV."""
+    scans = Scan.query.order_by(Scan.scan_time.desc()).all()
+    
+    def generate():
+        data = StringIO()
+        writer = csv.writer(data)
+        
+        # Write header
+        writer.writerow(['ID', 'Target', 'Scan Type', 'Status', 'Hosts Found', 'Duration (s)', 'Time'])
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
+        
+        # Write rows
+        for scan in scans:
+            writer.writerow([
+                scan.id,
+                scan.target,
+                scan.scan_type,
+                scan.status,
+                len(scan.hosts),
+                scan.duration_seconds,
+                scan.scan_time.strftime('%Y-%m-%d %H:%M:%S') if scan.scan_time else ''
+            ])
+            yield data.getvalue()
+            data.seek(0)
+            data.truncate(0)
+
+    response = Response(generate(), mimetype='text/csv')
+    response.headers.set("Content-Disposition", "attachment", filename="scan_history.csv")
+    return response
+
+
+@dashboard_bp.route('/api/charts/ports')
+def chart_ports():
+    """Return top 10 open ports for Chart.js."""
+    results = db.session.query(
+        Port.port_number, func.count(Port.id).label('count')
+    ).filter_by(port_state='open').group_by(Port.port_number).order_by(func.count(Port.id).desc()).limit(10).all()
+    
+    data = {
+        'labels': [f"Port {r.port_number}" for r in results],
+        'counts': [r.count for r in results]
+    }
+    return jsonify(data)
+
+
+@dashboard_bp.route('/api/charts/scans')
+def chart_scans():
+    """Return scan counts per date for Chart.js."""
+    results = db.session.query(
+        func.date(Scan.scan_time).label('date'), func.count(Scan.id).label('count')
+    ).group_by(func.date(Scan.scan_time)).order_by(func.date(Scan.scan_time)).limit(7).all()
+    
+    data = {
+        'labels': [str(r.date) for r in results if r.date],
+        'counts': [r.count for r in results if r.date]
+    }
+    return jsonify(data)

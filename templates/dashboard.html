@@ -37,6 +37,24 @@
                 <div class="stat-value">{{ total_open_ports }}</div>
             </div>
         </div>
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="detail-header" style="padding: 1rem;">
+                <h5 class="mb-3" style="font-size: 1rem;">Recent Scan Activity</h5>
+                <div>
+                    <canvas id="scansChart" style="height: 250px; width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="detail-header" style="padding: 1rem;">
+                <h5 class="mb-3" style="font-size: 1rem;">Top Open Ports</h5>
+                <div>
+                    <canvas id="portsChart" style="height: 250px; width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Recent Scans Table -->
@@ -98,4 +116,75 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    Chart.defaults.color = '#8b9bb4'; // text-muted color for dark theme
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // Fetch and render Ports Chart
+    fetch('/api/charts/ports')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('portsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Count',
+                        data: data.counts,
+                        backgroundColor: 'rgba(13, 202, 240, 0.8)',
+                        borderColor: '#0dcaf0',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 1 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+
+    // Fetch and render Scans Chart
+    fetch('/api/charts/scans')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('scansChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Scans',
+                        data: data.counts,
+                        borderColor: '#20c997',
+                        backgroundColor: 'rgba(32, 201, 151, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#20c997'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 1 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+});
+</script>
 {% endblock %}

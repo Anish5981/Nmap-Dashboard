@@ -9,12 +9,15 @@
     </a>
 
     <!-- Scan Detail Header -->
-    <div class="detail-header">
+    <div class="detail-header" id="pdf-content">
         <div class="d-flex align-items-start justify-content-between flex-wrap">
             <div class="detail-title">
                 Scan #{{ scan.id }}
                 <span class="badge-status badge-{{ scan.status }} ms-2">{{ scan.status }}</span>
             </div>
+            <button onclick="downloadPDF()" class="btn btn-sm btn-outline-primary">
+                📄 Download PDF
+            </button>
         </div>
 
         <div class="detail-meta mt-3">
@@ -109,4 +112,32 @@
         {% endif %}
     </div>
 </div>
+
+<!-- html2pdf.js for PDF Generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function downloadPDF() {
+    const element = document.getElementById('pdf-content');
+    
+    // Temporarily copy the hosts table into the pdf-content div so it gets printed
+    const tableWrapper = document.querySelector('.data-table-wrapper').cloneNode(true);
+    // Remove the action column from the cloned table
+    tableWrapper.querySelectorAll('th:last-child, td:last-child').forEach(el => el.remove());
+    
+    const printContainer = document.createElement('div');
+    printContainer.appendChild(element.cloneNode(true));
+    printContainer.appendChild(tableWrapper);
+    printContainer.querySelector('button').remove(); // Remove the download button from PDF
+    
+    const opt = {
+        margin:       0.5,
+        filename:     'Nmap_Scan_{{ scan.id }}.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    
+    html2pdf().set(opt).from(printContainer).save();
+}
+</script>
 {% endblock %}
