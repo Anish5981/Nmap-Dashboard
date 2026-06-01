@@ -5,6 +5,7 @@ Handles scan execution, detail views, and host detail views.
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask_login import login_required
 from models import db, Scan, Host, Port
 from modules.scanner import SCAN_TYPES, execute_scan, validate_target, is_private_target
 from modules.parser import parse_nmap_xml
@@ -14,6 +15,7 @@ scan_bp = Blueprint('scan', __name__)
 
 
 @scan_bp.route('/scan/new')
+@login_required
 def new_scan():
     """Render the new scan form."""
     return render_template('new_scan.html', scan_types=SCAN_TYPES)
@@ -82,6 +84,7 @@ def _run_scan_thread(app, scan_id, target, scan_type_key, nmap_path, scans_dir, 
 
 
 @scan_bp.route('/scan/execute', methods=['POST'])
+@login_required
 def execute():
     """Execute one or more scans and redirect."""
     target = request.form.get('target', '').strip()
@@ -175,6 +178,7 @@ def execute():
 
 
 @scan_bp.route('/scan/<int:scan_id>')
+@login_required
 def scan_detail(scan_id):
     """Show detailed results for a specific scan."""
     scan = Scan.query.get_or_404(scan_id)
@@ -188,6 +192,7 @@ def scan_detail(scan_id):
 
 
 @scan_bp.route('/host/<int:host_id>')
+@login_required
 def host_detail(host_id):
     """Show detailed information for a specific host."""
     host = Host.query.get_or_404(host_id)

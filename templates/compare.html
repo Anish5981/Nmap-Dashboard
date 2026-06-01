@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Compare Scans — Nmap Dashboard{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">Scan Comparison</h1>
+            <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                Comparing Scan #{{ scan1.id }} (Base) with Scan #{{ scan2.id }} (Current)
+            </p>
+        </div>
+        <a href="{{ url_for('dashboard.history') }}" class="btn btn-secondary-custom">
+            ← Back to History
+        </a>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Scan 1 Summary -->
+        <div class="col-md-6">
+            <div class="metric-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Base Scan (#{{ scan1.id }})</span>
+                    <span class="badge-status badge-{{ scan1.status }}">{{ scan1.status }}</span>
+                </div>
+                <h4 class="mb-1 font-mono text-truncate">{{ scan1.target }}</h4>
+                <div class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                    {{ scan1.scan_type }} • {{ scan1.scan_time.strftime('%b %d, %Y %H:%M') if scan1.scan_time else 'Unknown' }}
+                </div>
+                <div class="mt-3 pt-3 border-top border-secondary" style="border-color: var(--border-color) !important;">
+                    <div class="d-flex justify-content-between">
+                        <span>Hosts Found:</span>
+                        <span class="fw-bold">{{ scan1.hosts|length }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan 2 Summary -->
+        <div class="col-md-6">
+            <div class="metric-card h-100" style="border-left: 3px solid var(--accent-blue);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Current Scan (#{{ scan2.id }})</span>
+                    <span class="badge-status badge-{{ scan2.status }}">{{ scan2.status }}</span>
+                </div>
+                <h4 class="mb-1 font-mono text-truncate">{{ scan2.target }}</h4>
+                <div class="text-muted" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                    {{ scan2.scan_type }} • {{ scan2.scan_time.strftime('%b %d, %Y %H:%M') if scan2.scan_time else 'Unknown' }}
+                </div>
+                <div class="mt-3 pt-3 border-top border-secondary" style="border-color: var(--border-color) !important;">
+                    <div class="d-flex justify-content-between">
+                        <span>Hosts Found:</span>
+                        <span class="fw-bold">{{ scan2.hosts|length }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Added Hosts -->
+    {% if diff.added_hosts %}
+    <div class="detail-header mb-4">
+        <h5 class="mb-3 d-flex align-items-center">
+            <span style="color: var(--accent-green); margin-right: 8px;">➕</span> New Hosts Discovered
+        </h5>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Hostname</th>
+                        <th>OS Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for host in diff.added_hosts %}
+                    <tr onclick="window.location='{{ url_for('scan.host_detail', host_id=host.id) }}'" style="cursor: pointer; background-color: rgba(46, 160, 67, 0.05);">
+                        <td class="font-mono text-success">{{ host.ip_address }}</td>
+                        <td>{{ host.hostname or '—' }}</td>
+                        <td class="text-muted" style="font-size: 0.85rem;">{{ host.os_details or 'Unknown' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Removed Hosts -->
+    {% if diff.removed_hosts %}
+    <div class="detail-header mb-4">
+        <h5 class="mb-3 d-flex align-items-center">
+            <span style="color: var(--accent-red); margin-right: 8px;">➖</span> Hosts Offline / Missing
+        </h5>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Hostname</th>
+                        <th>OS Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for host in diff.removed_hosts %}
+                    <tr style="background-color: rgba(248, 81, 73, 0.05);">
+                        <td class="font-mono text-danger"><del>{{ host.ip_address }}</del></td>
+                        <td>{{ host.hostname or '—' }}</td>
+                        <td class="text-muted" style="font-size: 0.85rem;">{{ host.os_details or 'Unknown' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Common Hosts with Changes -->
+    {% if diff.common_hosts %}
+    <div class="detail-header mb-4">
+        <h5 class="mb-3 d-flex align-items-center">
+            <span style="color: var(--accent-yellow); margin-right: 8px;">⚡</span> Port Changes on Existing Hosts
+        </h5>
+        {% for ch in diff.common_hosts %}
+        <div class="mb-4">
+            <h6 class="font-mono mb-2">{{ ch.ip }} <span class="text-muted fw-normal" style="font-size: 0.9rem;">{{ ch.hostname }}</span></h6>
+            
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered border-secondary mb-0" style="border-color: var(--border-color) !important;">
+                    <thead>
+                        <tr style="background-color: rgba(255,255,255,0.02);">
+                            <th style="width: 25%;">Change Type</th>
+                            <th style="width: 20%;">Port</th>
+                            <th>Service Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- New Ports -->
+                        {% for port in ch.port_diff.added %}
+                        <tr>
+                            <td class="text-success"><span class="badge bg-success bg-opacity-25 text-success border border-success">New Open Port</span></td>
+                            <td class="font-mono">{{ port.port_number }}/{{ port.protocol }}</td>
+                            <td>{{ port.service_name or 'unknown' }} {{ port.service_version or '' }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        <!-- Closed Ports -->
+                        {% for port in ch.port_diff.removed %}
+                        <tr>
+                            <td class="text-danger"><span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Port Closed</span></td>
+                            <td class="font-mono"><del>{{ port.port_number }}/{{ port.protocol }}</del></td>
+                            <td class="text-muted">{{ port.service_name or 'unknown' }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        <!-- State Changed Ports -->
+                        {% for p1, p2 in ch.port_diff.changed %}
+                        <tr>
+                            <td class="text-warning"><span class="badge bg-warning bg-opacity-25 text-warning border border-warning">State Changed</span></td>
+                            <td class="font-mono">{{ p2.port_number }}/{{ p2.protocol }}</td>
+                            <td>Changed from <span class="badge bg-secondary">{{ p1.port_state }}</span> to <span class="badge bg-secondary">{{ p2.port_state }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not diff.added_hosts and not diff.removed_hosts and not diff.common_hosts %}
+    <div class="empty-state">
+        <div class="empty-icon">✓</div>
+        <div class="empty-text">No differences found</div>
+        <div class="empty-subtext">These two scans are completely identical.</div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

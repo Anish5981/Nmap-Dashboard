@@ -6,11 +6,13 @@ JSON API endpoints for AJAX calls and programmatic access.
 
 from flask import Blueprint, jsonify, request
 from models import db, Scan, Host, Port
+from flask_login import login_required
 
 api_bp = Blueprint('api', __name__)
 
 
 @api_bp.route('/api/stats')
+@login_required
 def stats():
     """Dashboard summary statistics."""
     total_scans = Scan.query.count()
@@ -29,6 +31,7 @@ def stats():
 
 
 @api_bp.route('/api/scans')
+@login_required
 def list_scans():
     """List scans with optional filters."""
     target = request.args.get('target', '').strip()
@@ -46,6 +49,7 @@ def list_scans():
 
 
 @api_bp.route('/api/scans/<int:scan_id>')
+@login_required
 def get_scan(scan_id):
     """Get detailed scan info with hosts and ports."""
     scan = Scan.query.get_or_404(scan_id)
@@ -55,6 +59,7 @@ def get_scan(scan_id):
 
 
 @api_bp.route('/api/search')
+@login_required
 def search():
     """Global search across hosts, ports, and services."""
     q = request.args.get('q', '').strip()

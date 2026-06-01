@@ -57,13 +57,18 @@
             <a href="{{ url_for('dashboard.export_csv') }}" class="btn btn-sm btn-outline-success">
                 📥 Export CSV
             </a>
+            <button type="submit" form="compare-form" class="btn btn-sm btn-outline-primary ms-2" id="btn-compare" disabled>
+                ⚖️ Compare Selected (0)
+            </button>
         </div>
 
         {% if scans %}
         <div class="table-responsive">
-            <table class="table table-clickable">
+            <form id="compare-form" action="{{ url_for('dashboard.compare_scans') }}" method="GET">
+            <table class="table table-hover">
                 <thead>
                     <tr>
+                        <th style="width: 40px;"></th>
                         <th>#</th>
                         <th>Target</th>
                         <th>Scan Type</th>
@@ -76,9 +81,12 @@
                 </thead>
                 <tbody>
                     {% for scan in scans %}
-                    <tr onclick="window.location='{{ url_for('scan.scan_detail', scan_id=scan.id) }}'">
-                        <td class="text-muted">{{ scan.id }}</td>
-                        <td class="font-mono">{{ scan.target }}</td>
+                    <tr>
+                        <td onclick="event.stopPropagation();">
+                            <input class="form-check-input scan-checkbox" type="checkbox" name="scan_ids" value="{{ scan.id }}">
+                        </td>
+                        <td class="text-muted" onclick="window.location='{{ url_for('scan.scan_detail', scan_id=scan.id) }}'" style="cursor:pointer;">{{ scan.id }}</td>
+                        <td class="font-mono" onclick="window.location='{{ url_for('scan.scan_detail', scan_id=scan.id) }}'" style="cursor:pointer;">{{ scan.target }}</td>
                         <td>{{ scan.scan_type }}</td>
                         <td class="font-mono" style="font-size: 0.78rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                             {{ scan.command_used }}
@@ -95,7 +103,34 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </form>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const checkboxes = document.querySelectorAll('.scan-checkbox');
+                const btnCompare = document.getElementById('btn-compare');
+                
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        const checkedCount = document.querySelectorAll('.scan-checkbox:checked').length;
+                        btnCompare.textContent = `⚖️ Compare Selected (${checkedCount})`;
+                        
+                        if (checkedCount === 2) {
+                            btnCompare.disabled = false;
+                            // Disable remaining unchecked boxes
+                            checkboxes.forEach(box => {
+                                if (!box.checked) box.disabled = true;
+                            });
+                        } else {
+                            btnCompare.disabled = true;
+                            // Enable all boxes
+                            checkboxes.forEach(box => box.disabled = false);
+                        }
+                    });
+                });
+            });
+        </script>
 
         <!-- Pagination -->
         {% if pagination.pages > 1 %}
