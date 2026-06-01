@@ -194,9 +194,13 @@ def host_detail(host_id):
     scan = Scan.query.get_or_404(host.scan_id)
     ports = Port.query.filter_by(host_id=host_id).order_by(Port.port_number).all()
 
+    # List of ports commonly targeted by attackers
+    RISKY_PORTS = [20, 21, 22, 23, 25, 53, 135, 137, 139, 445, 1433, 3306, 3389]
+
     return render_template(
         'host_detail.html',
         host=host,
         scan=scan,
         ports=ports,
+        risky_ports=RISKY_PORTS,
     )

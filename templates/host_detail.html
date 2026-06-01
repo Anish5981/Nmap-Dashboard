@@ -67,7 +67,12 @@
                 <tbody>
                     {% for port in ports %}
                     <tr>
-                        <td class="font-mono" style="font-weight: 600;">{{ port.port_number }}</td>
+                        <td class="font-mono" style="font-weight: 600;">
+                            {{ port.port_number }}
+                            {% if port.port_number in risky_ports and port.port_state == 'open' %}
+                                <span class="badge bg-danger ms-2" style="font-size: 0.65rem; letter-spacing: 0.5px;">RISKY</span>
+                            {% endif %}
+                        </td>
                         <td class="text-uppercase" style="font-size: 0.8rem;">{{ port.protocol }}</td>
                         <td>
                             <span class="badge-status badge-{{ port.port_state }}">
