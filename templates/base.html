@@ -42,6 +42,18 @@
                             📋 History
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'schedule.index' %}active{% endif %}"
+                           href="{{ url_for('schedule.index') }}">
+                            ⏱️ Schedules
+                        </a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="nav-link btn btn-outline-danger btn-sm px-3 mt-1" style="border-radius: 20px; color: var(--accent-red) !important; border-color: var(--accent-red) !important;"
+                           href="{{ url_for('auth.logout') }}">
+                            Logout
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Scheduled Scans — Nmap Dashboard{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">Scheduled Scans</h1>
+            <p class="text-muted mb-0" style="font-size: 0.85rem;">Manage automated background scans</p>
+        </div>
+    </div>
+
+    <!-- Create Schedule Form -->
+    <div class="metric-card mb-4">
+        <h5 class="mb-3">➕ Create New Schedule</h5>
+        <form method="POST" action="{{ url_for('schedule.add_schedule') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Target IP / Domain</label>
+                <input type="text" name="target" class="form-control" placeholder="e.g., 192.168.1.1 or scanme.nmap.org" required>
+            </div>
+            
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Scan Profile</label>
+                <select name="scan_type" class="form-select" required>
+                    <option value="" selected disabled>Choose a scan type...</option>
+                    {% for key, config in scan_types.items() %}
+                        <option value="{{ key }}">{{ config.name }} ({{ config.flags }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Interval (Minutes)</label>
+                <input type="number" name="interval" class="form-control" placeholder="60" min="1" required>
+            </div>
+            
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary-custom w-100">Schedule</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Schedules Table -->
+    <div class="detail-header mb-4">
+        <h5 class="mb-3">Active Schedules</h5>
+        
+        {% if tasks %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Target</th>
+                        <th>Scan Type</th>
+                        <th>Frequency</th>
+                        <th>Created At</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td class="font-mono fw-bold">{{ task.target }}</td>
+                        <td>{{ task.scan_type }}</td>
+                        <td>Every {{ task.schedule_value.replace('minutes=', '') }} min</td>
+                        <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                Active
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <form method="POST" action="{{ url_for('schedule.delete_schedule', task_id=task.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this scheduled task?');">
+                                    🗑️ Cancel
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">⏱️</div>
+            <div class="empty-text">No scheduled scans</div>
+            <div class="empty-subtext">Automate your network monitoring by creating a schedule above.</div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

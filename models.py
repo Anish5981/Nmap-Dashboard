@@ -133,3 +133,20 @@ class Port(db.Model):
 
     def __repr__(self):
         return f'<Port {self.port_number}/{self.protocol} ({self.port_state})>'
+
+
+class ScheduledTask(db.Model):
+    """Represents a recurring scheduled Nmap scan."""
+
+    __tablename__ = 'scheduled_tasks'
+
+    id = db.Column(db.String(50), primary_key=True)
+    target = db.Column(db.String(255), nullable=False)
+    scan_type = db.Column(db.String(100), nullable=False)
+    schedule_type = db.Column(db.Enum('interval', 'cron', name='schedule_type_enum'), nullable=False)
+    schedule_value = db.Column(db.String(100), nullable=False)  # e.g. "minutes=5" or "0 0 * * *"
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+
+    def __repr__(self):
+        return f'<ScheduledTask {self.id}: {self.scan_type} on {self.target}>'

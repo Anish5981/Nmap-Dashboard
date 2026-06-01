@@ -19,6 +19,12 @@ def create_app():
     # Initialize database
     db.init_app(app)
 
+    # Initialize APScheduler
+    app.config['SCHEDULER_API_ENABLED'] = True
+    from extensions import scheduler
+    scheduler.init_app(app)
+    scheduler.start()
+
     # Ensure scans directory exists
     os.makedirs(app.config['SCANS_DIR'], exist_ok=True)
 
@@ -37,11 +43,13 @@ def create_app():
     from routes.scan import scan_bp
     from routes.api import api_bp
     from routes.auth import auth_bp
+    from routes.schedule import schedule_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(scan_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(schedule_bp)
 
     # Create database tables and default admin
     with app.app_context():
@@ -55,9 +63,32 @@ def create_app():
             db.session.commit()
             print("Default admin user created (admin / admin123)")
 
-    return app
+        # Load Scheduled Tasks into APScheduler
+        from models import ScheduledTask
+        from routes.schedule import scheduled_scan_job
+        tasks = ScheduledTask.query.filter_by(is_active=True).all()
+        for task in tasks:
+            # Parse minutes from "minutes=X"
+            try:
+                minutes = int(task.schedule_value.replace('minutes=', ''))
+                scheduler.add_job(
+                    id=task.id,
+                    func=scheduled_scan_job,
+                    trigger='interval',
+                    minutes=minutes,
+                    args=[
+                        task.target, task.scan_type,
+                        app.config['NMAP_PATH'],
+                        app.config['SCANS_DIR'],
+                        app.config['SCAN_TIMEOUT']
+                    ],
+                    replace_existing=True
+                )
+            except Exception as e:
+                print(f"Error loading scheduled task {task.id}: {e}")
 
+    return app
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
